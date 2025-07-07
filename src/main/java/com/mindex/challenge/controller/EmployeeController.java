@@ -5,12 +5,9 @@ import com.mindex.challenge.service.EmployeeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class EmployeeController {
@@ -40,4 +37,17 @@ public class EmployeeController {
         employee.setEmployeeId(id);
         return employeeService.update(employee);
     }
+
+    @GetMapping("/employee/search-by-name")
+    public List<Employee> findByName(@RequestParam String firstName, @RequestParam String lastName) {
+        LOG.debug("Received employee search request for firstName: [{}], lastName: [{}]", firstName, lastName);
+        return employeeService.findByName(firstName, lastName);
+    }
+
+    @DeleteMapping("/employee/{id}")
+    public void deleteEmployee(@PathVariable String id) {
+        LOG.debug("Received employee delete request for id [{}]", id);
+        employeeService.deleteEmployee(id);
+    }
+
 }

@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,6 +23,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Employee create(Employee employee) {
         LOG.debug("Creating employee [{}]", employee);
 
+        //Adding a duplicate entry validation
+        Employee existingEmployee = employeeRepository.findFirstByEmployeeId(employee.getEmployeeId());
+        if (existingEmployee != null) {
+            throw new RuntimeException("Employee already exists with id: " + employee.getEmployeeId());
+        }
         employee.setEmployeeId(UUID.randomUUID().toString());
         employeeRepository.insert(employee);
 
@@ -31,7 +38,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Employee read(String id) {
         LOG.debug("Creating employee with id [{}]", id);
 
-        Employee employee = employeeRepository.findByEmployeeId(id);
+        Employee employee = employeeRepository.findFirstByEmployeeId(id);
 
         if (employee == null) {
             throw new RuntimeException("Invalid employeeId: " + id);
@@ -45,5 +52,30 @@ public class EmployeeServiceImpl implements EmployeeService {
         LOG.debug("Updating employee [{}]", employee);
 
         return employeeRepository.save(employee);
+    }
+
+    @Override
+    public List<Employee> findByName(String firstName, String lastName) {
+        LOG.debug("Finding employees with firstName: [{}] and lastName: [{}]", firstName, lastName);
+
+        List<Employee> employees = employeeRepository.findByFirstNameAndLastName(firstName, lastName);
+        if (employees.isEmpty()) {
+            LOG.debug("No employees found with the given name");
+        }
+
+        return employees;
+    }
+
+    @Override
+    public void deleteEmployee(String employeeId) {
+        LOG.debug("Deleting employee with id [{}]", employeeId);
+
+        // Verify employee exists before deletion
+        Employee employee = employeeRepository.findFirstByEmployeeId(employeeId);
+        if (employee == null) {
+            throw new RuntimeException("Invalid employeeId: " + employeeId);
+        }
+
+        employeeRepository.deleteByEmployeeId(employeeId);
     }
 }
